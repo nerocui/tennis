@@ -1,0 +1,181 @@
+<!doctype html>
+<html>
+<head>
+</head>
+
+<body>
+	<canvas id="gameCanvas" width="800" height="600"/>
+
+	<style type="text/css">
+		*{
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		body{
+			background-color: lightgrey;
+		}
+		#gameCanvas{
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+	</style>
+	<script>
+
+		var canvas;
+		var canvasContext;
+		var topBound;
+		var bottomBound ;
+		var leftBound;
+		var rightBound;
+		var playerX;
+		var playerY;
+		var playerWidth  = 10;
+		var playerHeight = 100;
+		var enemyX;
+		var enemyY;
+		var enemyWidth   = 10;
+		var enemyHeight  = 100;
+		var ballX;
+		var ballY;
+		var ballInitialSpeedX = -5;
+		var ballInitialSpeedY = 3;
+		var ballSpeedX   = ballInitialSpeedX;
+		var ballSpeedY   = ballInitialSpeedY;
+		var playerColor  = 'white';
+		var enemyColor   = 'red';
+
+		var initialPlayerX;
+		var initialPlayerY;
+		var initialEnemyX;
+		var initialEnemyY;
+		var ballInitialX;
+		var ballInitialY;
+
+		window.onload = function(){
+			canvas = document.getElementById('gameCanvas');
+			canvasContext = canvas.getContext('2d');
+			canvas.addEventListener('mousemove', function(e){
+				var mouse = mousePosition(e);
+				playerY = mouse.y - playerHeight/2;
+			})
+			topBound    = 0;
+			bottomBound = canvas.height;
+			leftBound   = 0;
+			rightBound  = canvas.width;
+			var FPS = 60;
+			drawRect(0, 0, canvas.width, canvas.height, 'black');
+			initialPlayerX = 0;
+			initialPlayerY = 200;
+			initialEnemyX  = canvas.width - enemyWidth;
+			initialEnemyY  = 200;
+			ballInitialX   = canvas.width/2;
+			ballInitialY   = canvas.height/2;
+			playerX = initialPlayerX;
+			playerY = initialPlayerY;
+			enemyX  = initialEnemyX;
+			enemyY  = initialEnemyY;
+			ballX   = ballInitialX;
+			ballY   = ballInitialY;
+
+			drawRect(playerX, playerY, playerWidth, playerHeight, playerColor);
+			drawRect(enemyX, enemyY, enemyWidth, enemyHeight, enemyColor);
+			drawRect(ballX, ballY, 10, 10, 'white');
+			//setup update method
+			setInterval(function(){moveAll();drawAll();}, 1000/FPS);
+			//start the game
+		}
+
+
+		function drawAll(){
+			
+			drawRect(0, 0, canvas.width, canvas.height, 'black');
+			drawRect(playerX, playerY, playerWidth, playerHeight, playerColor);
+			drawRect(enemyX, enemyY, enemyWidth, enemyHeight, enemyColor);
+			drawRect(ballX, ballY, 10, 10, 'white');
+		}
+
+		function drawRect(topX, topY, width, height, color){
+			canvasContext.fillStyle = color;
+			canvasContext.fillRect(topX, topY, width, height);
+		}
+
+		function reset(){
+			playerX = initialPlayerX;
+			playerY = initialPlayerY;
+			enemyX  = initialEnemyX;
+			enemyY  = initialEnemyY;
+			ballX   = ballInitialX;
+			ballY   = ballInitialY;
+			ballSpeedX = ballInitialSpeedX;
+			ballSpeedY = ballInitialSpeedY;
+
+		}
+
+
+		function mousePosition(e){
+			var rect = canvas.getBoundingClientRect();
+			var root = document.documentElement;
+			var mouseX = e.clientX - rect.left - root.scrollLeft;
+			var mouseY = e.clientY - rect.top  - root.scrollTop;
+			return {
+				x: mouseX,
+				y: mouseY
+			};
+		}
+
+		function checkColliction(){
+			if(ballX <= leftBound){
+				alert('You lost');
+				reset();
+				return;
+			}
+			if(ballX >= rightBound){
+				alert('You win');
+				reset();
+				return;
+			}
+			if(ballY <= topBound || ballY >= bottomBound){
+				ballSpeedY = -ballSpeedY;
+			}
+			if(ballX <= playerX + playerWidth && ballY <= playerY + playerHeight && ballY >= playerY){
+				ballSpeedX = - ballSpeedX;
+				var x = 0;
+				var factor = 20;
+				if(ballY < playerY + playerHeight/2){
+					//land in top half
+					if(ballSpeedY > 0){
+						//ball going in opposite direction
+						x = -(ballY - playerY)/factor;
+					}
+					if(ballSpeedY < 0){
+						x = (ballY - playerY)/factor;
+					}
+				}
+				if(ballY > playerY + playerHeight/2){
+					//land in bottom half
+					if(ballSpeedY > 0){
+						x = (playerY + playerHeight - ballY)/factor;
+					}
+					if(ballSpeedY < 0){
+						x = -(playerY + playerHeight - ballY)/factor;
+					}
+				}
+				ballSpeedY += x;
+			}
+
+			if(ballX >= enemyX && ballY <= enemyY + enemyHeight && ballY >= enemyY){
+				ballSpeedX = - ballSpeedX;
+			}
+		}
+
+		function moveAll(){
+			checkColliction();
+			enemyY = ballY - enemyHeight/2 ;
+			ballX += ballSpeedX;
+			ballY += ballSpeedY;
+		}
+	</script>
+</body>
